@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+  <head>
+
+    <title>[Title]</title>
+
+    <script src="howler.min.js"></script>
+    <script type="text/javascript">
+      var sounds = [
+        {
+          "name": "Sound 1",
+          "src": "sound1.mp3"
+        },
+        {
+          "name": "Sound 1 again",
+          "src": "sound1.mp3"
+        },
+        {
+          "name": "SPACER" // This just separates the two blocks visually on the page
+        },
+        {
+          "name": "Sound 2",
+          "src": "sound2.mp3"
+        },
+      ];
+
+      function makePlay(howl, domElement) {
+        return function() {
+          howl.play();
+          domElement.className = domElement.className + " playing";
+        };
+      }
+
+      function makeLoop(howl, button) {
+        return function() {
+          howl.loop(!howl.loop());
+          button.innerHTML = howl.loop() ? "Looping..." : "Loop";
+        }
+      }
+
+      function makeStop(howl) {
+        return function() {
+          howl.fade(howl.volume(), 0, 500);
+        };
+      }
+
+      function makeVolumeUp(howl) {
+        return function() {
+          howl.volume(howl.volume() + 0.1);
+        };
+      }
+
+      function makeVolumeDown(howl) {
+        return function() {
+          howl.volume(howl.volume() - 0.1);
+        };
+      }
+
+      function setLoaded(domElement) {
+        return function() {
+          domElement.className = domElement.className + " loaded";
+        };
+      }
+
+      function setStopped(domElement) {
+        return function(id) {
+          domElement.className = domElement.className.replace(' playing', '');
+        };
+      }
+
+      function setEnd(domElement, howl) {
+        return function(id) {
+          if (!howl.loop()) {
+            domElement.className = domElement.className.replace(' playing', '');
+          }
+        };
+      }
+
+      function fadeEndHandler(howl, volume) {
+        return function(id) {
+          howl.stop();
+          howl.volume(volume);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function(event) {
+        var button_container = document.getElementById("audio_buttons");
+        var howls = [];
+
+        for(i = 0; i < sounds.length; i++) {
+          if (sounds[i].name == "SPACER") {
+            var breaker = document.createElement("div");
+            breaker.className = "clear";
+            button_container.appendChild(breaker);
+            continue;
+          }
+
+
+          var volume = 1;
+          var loop = false;
+
+          if (sounds[i]["loop"]) {
+            loop = sounds[i]["loop"];
+          }
+
+          if (sounds[i]["volume"]) {
+            volume = sounds[i]["volume"];
+          }
+
+          var new_container = document.createElement("div");
+
+          howls[i] = new Howl({
+            src: ['audio/' + sounds[i]["src"]],
+            loop: loop,
+            volume: volume,
+            onstop: setStopped(new_container),
+            onload: setLoaded(new_container)
+          });
+
+          howls[i].on("end", setEnd(new_container, howls[i]));
+
+
+          new_container.className = "button_controls";
+          var new_name = document.createElement("p");
+          new_name.innerHTML = sounds[i]["name"];
+          new_container.appendChild(new_name);
+          var new_button = document.createElement("button");
+          new_button.innerHTML = "Play";
+          new_button.addEventListener("click", makePlay(howls[i], new_container));
+          new_container.appendChild(new_button);
+
+          var new_button = document.createElement("button");
+          new_button.innerHTML = "Stop";
+          new_button.addEventListener("click", makeStop(howls[i]));
+          new_container.appendChild(new_button);
+
+          var new_button = document.createElement("button");
+          new_button.innerHTML = "+10%";
+          new_button.addEventListener("click", makeVolumeUp(howls[i]));
+          new_container.appendChild(new_button);
+
+          var new_button = document.createElement("button");
+          new_button.innerHTML = "-10%";
+          new_button.addEventListener("click", makeVolumeDown(howls[i]));
+          new_container.appendChild(new_button);
+
+          var new_button = document.createElement("button");
+          new_button.innerHTML = "Loop";
+          new_button.addEventListener("click", makeLoop(howls[i], new_button));
+          new_container.appendChild(new_button);
+
+          button_container.appendChild(new_container);
+
+          howls[i].on('fade', fadeEndHandler(howls[i], howls[i].volume()));
+        }
+      });
+    </script>
+
+    <!-- CSS -->
+    <style type="text/css">
+    <!--
+
+    body { background-color: white; margin: 1em; padding: 0; font-family: sans-serif; font-size: 12px; }
+    p { margin-bottom: 10px; }
+    button { padding: 15px 20px 15px 20px; margin: 5px;}
+    .clear {clear: both; min-height: 3em; background-color: rgba(0,0,0,0.05);}
+    .button_controls { float: left; border: 1px solid black; margin: 5px; padding: 1px; text-align: center; font-size: 150%; max-width: 350px; min-width: 350px;}
+    .loaded {background-color: rgba(0,100,0,0.2);}
+    .playing {animation: colorchange 2s infinite; /* animation-name followed by duration in seconds*/
+                 /* you could also use milliseconds (ms) or something like 2.5s */
+              -webkit-animation: colorchange 2s infinite; /* Chrome and Safari */
+    }
+
+    @keyframes colorchange
+    {
+      0%   {background: #f4427d;}
+      50%  {background: #f9a2bf;}
+      100% {background: #f4427d;}
+    }
+
+    @-webkit-keyframes colorchange /* Safari and Chrome - necessary duplicate */
+    {
+      0%   {background: #f4427d;}
+      50%  {background: #f9a2bf;}
+      100% {background: #f4427d;}
+    }
+
+    -->
+    </style>
+
+  </head>
+
+  <body>
+    <div id="audio_buttons">
+
+    </div>
+  </body>
+
+</html>
